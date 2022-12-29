@@ -1,0 +1,41 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "yzgyyang/macOS-10.14"
+    
+    # Synced folder are not supported under Mac OS X
+    config.vm.synced_folder ".", "/vagrant", :disabled => true
+    # Temporary fix for annoying "Replace key" issue
+    config.ssh.insert_key = false
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = "4096"
+        # Fix "hfs mounted macintosh hd on device root_device" issue
+        vb.customize ["modifyvm", :id, "--cpuidset", "1","000206a7","02100800","1fbae3bf","bfebfbff"]
+        # Some more hacks for device recognition
+        vb.customize ["setextradata", :id, "VBoxInternal/Devices/efi/0/Config/DmiSystemProduct", "MacBookPro13,3"]
+        vb.customize ["setextradata", :id, "VBoxInternal/Devices/efi/0/Config/DmiSystemVersion", "1.0"]
+        vb.customize ["setextradata", :id, "VBoxInternal/Devices/efi/0/Config/DmiBoardProduct", "Iloveapple"]
+        vb.customize ["setextradata", :id, "VBoxInternal/Devices/smc/0/Config/DeviceKey", "ourhardworkbythesewordsguardedpleasedontsteal(c)AppleComputerInc"]
+    end
+    # ��������� ���������
+    # config.vm.provision "shell", inline: "curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.1.4/powershell-7.1.4-osx-x64.tar.gz"
+    # config.vm.provision "shell", inline: "sudo mkdir -p /usr/local/microsoft/powershell/7.1.4"
+    # config.vm.provision "shell", inline: "sudo tar zxf /tmp/powershell.tar.gz -C /usr/local/microsoft/powershell/7.1.4"
+    # config.vm.provision "shell", inline: "sudo chmod +x /usr/local/microsoft/powershell/7.1.4/pwsh"
+    # config.vm.provision "shell", inline: "sudo ln -sf /usr/local/microsoft/powershell/7.1.4/pwsh /usr/local/bin/pwsh"
+
+    # # ��������� ����
+    config.vm.provision "shell", inline: "curl -L -o /tmp/dotnet-sdk.tar.gz https://download.visualstudio.microsoft.com/download/pr/7fe7149d-feaa-44c6-8a7e-a9cfc42b461f/93fdf8bbf05fc293a05abad93c717897/dotnet-sdk-5.0.401-osx-x64.tar.gz"
+    config.vm.provision "shell", inline: "sudo mkdir -p /usr/local/microsoft/dotnet-sdk/latest"
+    config.vm.provision "shell", inline: "sudo tar zxf /tmp/dotnet-sdk.tar.gz -C /usr/local/microsoft/dotnet-sdk/latest"
+    config.vm.provision "shell", inline: "sudo chmod +x /usr/local/microsoft/dotnet-sdk/latest/dotnet"
+    config.vm.provision "shell", inline: "sudo ln -sf /usr/local/microsoft/dotnet-sdk/latest/dotnet /usr/local/bin/dotnet"
+    config.vm.provision "shell", inline: "echo $PATH"
+
+    # ��������� tool
+    
+    config.vm.provision "shell", inline: "dotnet nuget update source BagetPackageSource1 --source http://10.0.2.2:5000/baget/v3/index.json"
+    config.vm.provision "shell", inline: "dotnet tool install lab-work-4 --tool-path /Users/vagrant/.dotnet/tools --version 1.0.2"
+    config.vm.provision "shell", inline: "cat << \EOF >> /Users/vagrant/.bash_profile
+export PATH=$PATH:/Users/vagrant/.dotnet/tools
+export DOTNET_ROOT=/usr/local/microsoft/dotnet-sdk/latest
+EOF"
+end

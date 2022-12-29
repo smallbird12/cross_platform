@@ -1,0 +1,22 @@
+Vagrant.configure("2") do |config|
+    config.vm.box = "gusztavvargadr/windows-10"
+    # не проверять репозиторий на наличие обновлений
+    config.vm.box_check_update = false
+    # отменить создание ssh-ключа
+    config.ssh.insert_key = false
+      
+    config.vm.provider "virtualbox" do |vb|
+        # имя виртуальной машины
+        vb.name = "windows-10"
+        # объем оперативной памяти
+        vb.memory = 2048
+        # количество ядер процессора
+        vb.cpus = 2
+    end
+
+    # hostname виртуальной машины
+    config.vm.hostname = "windows-10"
+    config.vm.provision "shell", inline: "choco install dotnet-5.0-sdk -y"
+    config.vm.provision "shell", inline: "dotnet nuget update source BagetPackageSource --source http://10.0.2.2:5000/baget/v3/index.json"
+    config.vm.provision "shell", inline: "dotnet tool install lab-work-4 -g --version 1.0.2"
+  end
